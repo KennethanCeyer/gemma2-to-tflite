@@ -24,6 +24,7 @@ import torch
 
 def convert_gemma_to_tflite(
     checkpoint_path: str,
+    output_path: str,
     prefill_seq_len: int = 512,
     kv_cache_max_len: int = 1024,
     quantize: bool = True,
@@ -33,6 +34,7 @@ def convert_gemma_to_tflite(
 
   Args:
       checkpoint_path (str): The filepath to the model checkpoint, or directory holding the checkpoint.
+      output_path (str): The filepath to the generated tflite model.
       prefill_seq_len (int, optional): The maximum size of prefill input tensor.
         Defaults to 512.
       kv_cache_max_len (int, optional): The maximum size of KV cache buffer,
@@ -57,12 +59,11 @@ def convert_gemma_to_tflite(
       .signature('decode', pytorch_model, (decode_token, decode_input_pos))
       .convert(quant_config=quant_config)
   )
-  edge_model.export(
-      f'/tmp/gemma2_seq{prefill_seq_len}_kv{kv_cache_max_len}.tflite'
-  )
+  edge_model.export(output_path)
 
 
 if __name__ == '__main__':
   project_root = Path(__file__).parent.resolve()
   checkpoint_path = project_root / 'model'
-  convert_gemma_to_tflite(str(checkpoint_path))
+  output_path = project_root / "model" / "gemma2.tflite"
+  convert_gemma_to_tflite(str(checkpoint_path), str(output_path))
