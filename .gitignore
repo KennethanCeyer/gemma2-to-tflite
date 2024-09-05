@@ -154,7 +154,10 @@ dmypy.json
 # Cython debug symbols
 cython_debug/
 
-model/*
+# PyTorch models
+*.ckpt
+*.model
+*.tar.gz
 
 # PyCharm
 #  JetBrains specific template is maintained in a separate JetBrains.gitignore that can
