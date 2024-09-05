@@ -51,19 +51,20 @@ def convert_gemma_to_tflite(
   decode_token = torch.tensor([[0]], dtype=torch.long)
   decode_input_pos = torch.tensor([0], dtype=torch.int64)
 
-  quant_config = quant_recipes.full_int8_dynamic_recipe() if quantize else None
+  # Disabled quantization option for investigating the OOM causes.
+  quant_config = None # quant_recipes.full_int8_dynamic_recipe() if quantize else None
   edge_model = (
       ai_edge_torch.signature(
-          'prefill', pytorch_model, (prefill_tokens, prefill_input_pos)
+          "prefill", pytorch_model, (prefill_tokens, prefill_input_pos)
       )
-      .signature('decode', pytorch_model, (decode_token, decode_input_pos))
+      .signature("decode", pytorch_model, (decode_token, decode_input_pos))
       .convert(quant_config=quant_config)
   )
   edge_model.export(output_path)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
   project_root = Path(__file__).parent.resolve()
-  checkpoint_path = project_root / 'model'
+  checkpoint_path = project_root / "model"
   output_path = project_root / "model" / "gemma2.tflite"
   convert_gemma_to_tflite(str(checkpoint_path), str(output_path))
