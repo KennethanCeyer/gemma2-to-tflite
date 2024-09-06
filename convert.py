@@ -13,6 +13,7 @@
 # limitations under the License.
 # ==============================================================================
 
+import gc
 import os
 from pathlib import Path
 
@@ -53,13 +54,18 @@ def convert_gemma_to_tflite(
   
     # Disabled quantization option for investigating the OOM causes.
     quant_config = None # quant_recipes.full_int8_dynamic_recipe() if quantize else None
-    edge_model = (
-        ai_edge_torch.signature(
-            "prefill", pytorch_model, (prefill_tokens, prefill_input_pos)
-        )
-        .signature("decode", pytorch_model, (decode_token, decode_input_pos))
-        .convert(quant_config=quant_config)
+    converter = (
+        ai_edge_torch
+          .signature(
+              "prefill", pytorch_model, (prefill_tokens, prefill_input_pos)
+          )
+          .signature("decode", pytorch_model, (decode_token, decode_input_pos))
     )
+    
+    del pytorch_model
+    gc.collect()
+
+    edge_model = converter.convert(quant_config=quant_config)
     edge_model.export(output_path)
 
 

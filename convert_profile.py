@@ -13,6 +13,7 @@
 # limitations under the License.
 # ==============================================================================
 
+import gc
 import linecache
 import os
 import tracemalloc
@@ -24,7 +25,7 @@ from ai_edge_torch.generative.examples.gemma import gemma2
 from ai_edge_torch.generative.quantize import quant_recipes
 
 
-def display_top(snapshot, key_type='lineno', limit=10):
+def display_top(snapshot, key_type="lineno", limit=10):
     snapshot = snapshot.filter_traces((
         tracemalloc.Filter(False, "<frozen importlib._bootstrap>"),
         tracemalloc.Filter(False, "<unknown>"),
@@ -40,7 +41,7 @@ def display_top(snapshot, key_type='lineno', limit=10):
               % (index, filename, frame.lineno, stat.size / 1024))
         line = linecache.getline(frame.filename, frame.lineno).strip()
         if line:
-            print('    %s' % line)
+            print("    %s" % line)
 
     other = top_stats[limit:]
     if other:
@@ -81,13 +82,19 @@ def convert_gemma_to_tflite(
   
     # Disabled quantization option for investigating the OOM causes.
     quant_config = None # quant_recipes.full_int8_dynamic_recipe() if quantize else None
-    edge_model = (
-        ai_edge_torch.signature(
-            "prefill", pytorch_model, (prefill_tokens, prefill_input_pos)
-        )
-        .signature("decode", pytorch_model, (decode_token, decode_input_pos))
-        .convert(quant_config=quant_config)
+    converter = (
+        ai_edge_torch
+            .signature(
+                "prefill", pytorch_model, (prefill_tokens, prefill_input_pos)
+            )
+            .signature("decode", pytorch_model, (decode_token, decode_input_pos))
     )
+
+    # Clean PyTorch model
+    del pytorch_model
+    gc.collect()
+
+    edge_model = converter.convert(quant_config=quant_config)
     edge_model.export(output_path)
   
   
