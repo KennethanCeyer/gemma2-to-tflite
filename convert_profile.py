@@ -92,11 +92,11 @@ def convert_gemma_to_tflite(
   
   
 if __name__ == "__main__":
-    snapshot = tracemalloc.take_snapshot()
     tracemalloc.start()
     project_root = Path(__file__).parent.resolve()
     checkpoint_path = project_root / "model"
     output_path = project_root / "model" / "gemma2.tflite"
     convert_gemma_to_tflite(str(checkpoint_path), str(output_path))
+    snapshot = tracemalloc.take_snapshot()
     display_top(snapshot)
   
