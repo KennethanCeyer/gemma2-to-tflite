@@ -24,7 +24,7 @@ from ai_edge_torch.generative.examples.gemma import gemma2
 from ai_edge_torch.generative.quantize import quant_recipes
 
 
-def display_top(snapshot, key_type='lineno', limit=3):
+def display_top(snapshot, key_type='lineno', limit=10):
     snapshot = snapshot.filter_traces((
         tracemalloc.Filter(False, "<frozen importlib._bootstrap>"),
         tracemalloc.Filter(False, "<unknown>"),
